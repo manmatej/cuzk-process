@@ -17,8 +17,6 @@ fil<-list.files(unzips,full.names = T,pattern = "*.laz$")
 # https://r-lidar.github.io/lidRbook/engine.html
 
 
-# library(devtools)
-# install_github("r-lidar/lidR")
 # install.packages("sf")
 # install.packages("terra")
 # install.packages("gstat")
@@ -65,19 +63,30 @@ plot(dtm)
 
 ## ============================== whitebox tools ==============================
 # to mi nefunguje...
-# install.packages("whitebox", repos="http://R-Forge.R-project.org")
-# whitebox::wbt_init()
+install.packages("whitebox", repos="http://R-Forge.R-project.org")
+whitebox::wbt_init()
 
 library(whitebox)
+wbt_version()
+setwd("d://Git/cuzk-process/")
 
-setwd(unzips)
-fil<-list.files(unzips,full.names = T,pattern = "*.laz$")
-# f<-paste(fil[1:10],collapse = ",")
-input<-fil[1]
-output="CUZK_LIDAR_CZ.las"
+unzips_zlidar<-"d:\\DMR5G_CUZK_LAZ_OPEN_202306_zlidar"
+dir.create(unzips_zlidar,showWarnings=F)
+
+
+library(lidR)
+ly<-readLAS("ZACL39.laz")
+writeLAS(ly,"ZACL39.las")
+
+wbt_las_to_zlidar(
+  inputs = "ZACL39.las",
+  outdir = unzips_zlidar)
+
+
+output="CUZK_LIDAR_CZ.tif"
 
 r<-wbt_lidar_tin_gridding(
-  input,
+  input="ZACL39.las",
   output = output,
   parameter = "elevation",
   returns = "all",
