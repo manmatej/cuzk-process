@@ -1,25 +1,49 @@
 
 
 ## ============================== whitebox tools ==============================
-install.packages("whitebox", repos="http://R-Forge.R-project.org")
+install.packages("whitebox")
 whitebox::wbt_init()
-
+whitebox::install_whitebox()
+  
 library(whitebox)
 wbt_version()
 
-# LAZ and LAS are not supported in wbt, therefore convet to "zlidar"
-wbt_las_to_zlidar(
-  inputs = "ZACL39.las",
-  outdir = ".")
+# produce raster from pointcloud tiles
+input1 = "d:\\laz"
+input2 = "d:\\Git\\cuzk-process\\laz"
+input3 = "c:/Users/matej.man/Downloads/laz/"
 
-# try to produce raster from pointcloud
-output="CUZK_LIDAR_CZ.tif"
+output="d:\\Git\\cuzk-process\\CUZK_LIDAR_CZ_mosaic.tif"
 
-r<-wbt_lidar_tin_gridding(
-  input="ZACL39.las",
-  output = output,
+p1<-"ZACL39.laz"
+p2<-"ZACL29.laz"
+
+
+wbt_lidar_tin_gridding(
+  input=input1,
+  output = "c:/Users/matej.man/Downloads/laz/fin.tif",
   parameter = "elevation",
   returns = "all",
-  resolution = 1000)
+  resolution = 10)
 
+wbt_lidar_tin_gridding(
+  input=input2,
+  output = "c:/Users/matej.man/Downloads/laz/fin.tif",
+  parameter = "elevation",
+  returns = "all",
+  resolution = 10)
 
+wbt_lidar_tin_gridding(
+  input=input3,
+  output = "c:/Users/matej.man/Downloads/laz/fin.tif",
+  parameter = "elevation",
+  returns = "all",
+  resolution = 10)
+
+setwd(input2)
+wbt_lidar_tin_gridding(
+  input=".",
+  output = "c:/Users/matej.man/Downloads/laz/fin.tif",
+  parameter = "elevation",
+  returns = "all",
+  resolution = 10)
