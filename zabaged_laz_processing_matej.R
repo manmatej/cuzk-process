@@ -1,59 +1,86 @@
-loc<-"\\\\ibot.cas.cz\\Public\\Freenas\\y_gis_data\\CR\\DMR5G_CUZK_LAZ_OPEN_202306\\"
-zips<-list.files(loc,pattern = "*.zip$",full.names = T) # list paths to all zip files in current directory
-
-unzips<-"d:\\DMR5G_CUZK_LAZ_OPEN_202306_unzip"
-# unzips<-tempdir()
-dir.create(unzips)
-setwd(unzips)
-
-
-for (i in 1:length(zips)){
-  unzip(zips[i],exdir=unzips)  # unzip your file 
-}
-
-fil<-list.files(unzips,full.names = T,pattern = "*.laz$")
 
 ## ============================= lidR ==================================
 # https://r-lidar.github.io/lidRbook/engine.html
-
-
 # install.packages("sf")
 # install.packages("terra")
 # install.packages("gstat")
 # install.packages("future")
+# install.packages("MBA")
 
 library(lidR)
 library(sf)
 library(terra)
 library(gstat)
 library(future)
+library(MBA)
 
+unzips<-r"(d:\DMR5G_CUZK_LAZ_OPEN_202306\las_class2\)"
 setwd(unzips)
 
 ctg <- readLAScatalog(unzips)
 st_crs(ctg)<-5514
-plot(ctg)
-las_check(ctg)
-summary(ctg)
+# plot(ctg)
+# las_check(ctg)
+# summary(ctg)
 
 
 
+## testing
+# prackovice <- clip_circle(ctg, x= -762595.74, y =-986323.41, radius = 2000)
+# hd<-r"(y:\CR\DMR5G_CUZK_LAZ_OPEN_202306_matej_testing\prackovice)"
+vosak <- clip_circle(ctg, x= -731639.81, y =-954457.37, radius = 2000)
+hd<-r"(y:\CR\DMR5G_CUZK_LAZ_OPEN_202306_matej_testing\vosak)"
+dir.create(hd)
+setwd(hd)
+
+# test<-prackovice
+test<-vosak
+
+## tin
+dtm <- rasterize_terrain(test, res=2, tin())
+plot(dtm,col = gray(1:50/50))
+# plot_dtm3d(dtm, bg = "white")
+writeRaster(dtm,"dtm_2m_tin.tif",overwrite=T)
 
 
-opt_output_files(ctg)<- paste0("d:\\DMR5G_CUZK_LAZ_OPEN_202306_lasCTG", "/{XCENTER}_{YCENTER}_{ID}")
-cg<-classify_ground(ctg, algorithm = pmf(ws = 5, th = 3))
-dtm <- rasterize_terrain(cg, res=10, tin())
-writeRaster(dtm,"dtm_10m.tif")
-plot(dtm)
+## MBA
+# mba is our function factory
+mba <- function(n = 1, m = 1, h = 8, extend = TRUE, overwrite=TRUE) {
+  # f is created inside mba and receive the ground points in a LAS (gnd)
+  # and the location where to compute the interpolation (where) 
+  f <- function(gnd, where,overwrite=TRUE) {
+    # computation of the interpolation (see the documentation of MBA package)
+    res <- MBA::mba.points(gnd@data, where, n, m , h, extend,overwrite=TRUE)
+    return(res$xyz.est[,3])
+  }
+  
+  # f is a function but we can set compatible classes. Here it is an
+  # algorithm for DTM 
+  f <- plugin_dtm(f)
+  return(f)
+}
+
+dtm1 <- rasterize_terrain(test, res=2, algorithm = mba(h=15),overwrite=TRUE)
+writeRaster(dtm1,"dtm_2m_mbah15.tif",overwrite=T)
+plot(dtm1, col = gray(1:50/50))
+# plot_dtm3d(dtm1, bg = "white")
 
 
 
+# compare to original 2019 DMR5G downloaded from CUZK
+library(terra)
+# poi<-st_point(c(-762595.74, -986323.41)) # prackovice
+poi<-st_point(c(-731639.81, -954457.37)) # vosak
 
+poi<-st_sfc(poi,crs=5514)
+roi<-st_buffer(poi,2000)
+v<-vect(roi)
 
-
-
-
-
+orig<-rast(r"(y:\CR\DMR5G_2019_SAGA\dmr5g_2019s.sdat)")
+r<-crop(orig,v)
+crs(r)<-crs(v)
+rr<-mask(r,v)
+writeRaster(rr,"origo2019.tif")
 
 
 
