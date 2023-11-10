@@ -33,10 +33,6 @@ setdiff(dtm.n,dsm.n)
 nms<-unique(dsm.n,dtm.n)
 nms.dot<-paste0(".",nms,".")
 
-
-shp <- system.file("extdata", "lake_polygons_UTM17.shp", package = "lidR")
-lake <- sf::st_read(shp, quiet = TRUE)
-
 setwd(r"(y:\CR\DMP1G_DMR5G_CUZK_LAZ_OPEN_202306_merge\)")
 
 for (i in 1:length(nms)){
