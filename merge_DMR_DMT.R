@@ -47,3 +47,7 @@ for (i in 1:length(nms)){
     opt_chunk_buffer(lcat) <- 10
     s<-catalog_retile(lcat)},error=function(e){cat("ERROR :",conditionMessage(e), "\n")})
 }
+
+mrg<-readLAScatalog(".")
+mrg
+plot(mrg)
