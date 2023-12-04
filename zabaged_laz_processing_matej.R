@@ -6,6 +6,9 @@
 # install.packages("gstat")
 # install.packages("future")
 # install.packages("MBA")
+# devtools::install_github("Jean-Romain/rlas", dependencies=TRUE)
+# devtools::install_github("Jean-Romain/lidR", dependencies=TRUE)
+
 
 library(lidR)
 library(sf)
@@ -14,18 +17,28 @@ library(gstat)
 library(future)
 library(MBA)
 
-unzips<-r"(d:\DMR5G_CUZK_LAZ_OPEN_202306\las_class2\)"
+## production ===============================================================
+
+unzips<-r"(d:\Man\DMR5G_CUZK_LAZ_OPEN_202306\)"
 setwd(unzips)
+get_lidr_threads()
+set_lidr_threads(0L)
+
+library(future)
+plan(multisession)
 
 ctg <- readLAScatalog(unzips)
 st_crs(ctg)<-5514
-# plot(ctg)
-# las_check(ctg)
-# summary(ctg)
+rslt<-r"(d:\Man\DMR5G_CUZK_LAZ_OPEN_202306_rslt)"
+dir.create(rslt)
+opt_output_files(ctg)<-paste0(rslt, "/{*}_tin")
+dtm <- rasterize_terrain(ctg, res=2, tin())
+writeRaster(dtm, r"(d:\Man\dtm_2m_tin1.tif)",overwrite=T)
 
+getwd()
+st_write(ctg$geometry,"tile_catalog.gpkg")
 
-
-## testing
+## testing ==================================================================
 # prackovice <- clip_circle(ctg, x= -762595.74, y =-986323.41, radius = 2000)
 # hd<-r"(y:\CR\DMR5G_CUZK_LAZ_OPEN_202306_matej_testing\prackovice)"
 vosak <- clip_circle(ctg, x= -731639.81, y =-954457.37, radius = 2000)
