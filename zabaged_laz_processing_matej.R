@@ -23,24 +23,78 @@ st_crs(ctg)<-5514
 # las_check(ctg)
 # summary(ctg)
 
-
-
-## testing
-# prackovice <- clip_circle(ctg, x= -762595.74, y =-986323.41, radius = 2000)
-# hd<-r"(y:\CR\DMR5G_CUZK_LAZ_OPEN_202306_matej_testing\prackovice)"
-vosak <- clip_circle(ctg, x= -731639.81, y =-954457.37, radius = 2000)
-hd<-r"(y:\CR\DMR5G_CUZK_LAZ_OPEN_202306_matej_testing\vosak)"
+hd<-r"(d:\DMR5G_CUZK_LAZ_OPEN_202306\las_class2\tin_2m)"
 dir.create(hd)
 setwd(hd)
 
-# test<-prackovice
-test<-vosak
-
 ## tin
-dtm <- rasterize_terrain(test, res=2, tin())
+dtm <- rasterize_terrain(ctg, res=2, tin())
+writeRaster(dtm,"DMR5G_2m_tin_open.img",overwrite=T)
 plot(dtm,col = gray(1:50/50))
 # plot_dtm3d(dtm, bg = "white")
+
+
+plot(dtm[[1]],col = gray(1:50/50))
+## tin - eliminate holes
+dtm <- rasterize_terrain(ctg, res=2, tin(extrapolate = knnidw(k = 20, p = 2, rmax = 100)))
+plot(dtm,col = gray(1:50/50))
+dt<-do.call(mosaic,dtm)
+
+writeRaster(dtm,r"(y:\CR\CZECH_GRIDS_1.0\00_inout_krovak_2m\DMR5G_2m_tin_open_elim_holes.img)",overwrite=T)
+plot(dtm,col = gray(1:50/50))
+# plot_dtm3d(dtm, bg = "white")
+
+
+
+## testing ==================================================================
+# prackovice <- clip_circle(ctg, x= -762595.74, y =-986323.41, radius = 2000)
+# hd<-r"(y:\CR\DMR5G_CUZK_LAZ_OPEN_202306_matej_testing\prackovice)"
+# vosak <- clip_circle(ctg, x= -731639.81, y =-954457.37, radius = 2000)
+# hd<-r"(y:\CR\DMR5G_CUZK_LAZ_OPEN_202306_matej_testing\vosak)"
+# dir.create(hd)
+# setwd(hd)
+
+milada<-clip_circle(ctg, x= -767455.2, y =-975922.9, radius = 2000)
+hd<-r"(y:\CR\DMR5G_CUZK_LAZ_OPEN_202306_matej_testing\milada)"
+dir.create(hd)
+setwd(hd)
+
+
+
+# test<-prackovice
+# test<-vosak
+test<-milada
+
+## tin
+dtm <- rasterize_terrain(test, res=2, tin(extrapolate =  knnidw(k = 5, p = 2, rmax = 50)))
+dtm1 <- rasterize_terrain(test, res=2, tin(extrapolate = knnidw(k = 20, p = 2, rmax = 100)))
+
+r<-dtm-dtm1
+summary(r)
+plot(r)
+
+library(terra)
+
+# Assume r is your SpatRaster of differences
+# Make a diverging color palette (e.g., blue-white-red)
+col_fun <- colorRampPalette(c("blue", "white", "red"))
+
+# Define breaks: centered at zero, to highlight changes
+max_abs <- max(abs(min(values(r), na.rm = TRUE)), abs(max(values(r), na.rm = TRUE)))
+breaks <- seq(-max_abs, max_abs, length.out = 100)
+
+# Plot with custom colors
+plot(r, col = col_fun(length(breaks)-1), breaks = breaks, main="Difference (dtm - dtm1)")
+
+
+
+
+plot(dtm,col = gray(1:50/50))
+plot_dtm3d(dtm, bg = "white")
 writeRaster(dtm,"dtm_2m_tin.tif",overwrite=T)
+
+
+
 
 
 ## MBA
@@ -81,46 +135,3 @@ r<-crop(orig,v)
 crs(r)<-crs(v)
 rr<-mask(r,v)
 writeRaster(rr,"origo2019.tif")
-
-
-
-
-
-
-
-## ============================== whitebox tools ==============================
-# to mi nefunguje...
-install.packages("whitebox", repos="http://R-Forge.R-project.org")
-whitebox::wbt_init()
-
-library(whitebox)
-wbt_version()
-setwd("d://Git/cuzk-process/")
-
-unzips_zlidar<-"d:\\DMR5G_CUZK_LAZ_OPEN_202306_zlidar"
-dir.create(unzips_zlidar,showWarnings=F)
-
-
-library(lidR)
-ly<-readLAS("ZACL39.laz")
-writeLAS(ly,"ZACL39.las")
-
-wbt_las_to_zlidar(
-  inputs = "ZACL39.las",
-  outdir = unzips_zlidar)
-
-
-output="CUZK_LIDAR_CZ.tif"
-
-r<-wbt_lidar_tin_gridding(
-  input="ZACL39.las",
-  output = output,
-  parameter = "elevation",
-  returns = "all",
-  resolution = 1000) # run sooo long. Why? In saga-gis few second.  
-
-wbt_lidar_join(inputs = fil, output = "CUZK_LIDAR_CZ_merge.las")
-# r<-wbt_lidar_idw_interpolation(input =  f,resolution = 1000) # for one scene CUZK it run more than 3 days, not finished, aborted. 
-
-
-
