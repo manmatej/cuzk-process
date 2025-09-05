@@ -30,43 +30,14 @@ plan(multisession)
 ctg <- readLAScatalog(unzips)
 st_crs(ctg)<-5514
 
-
-# plot(ctg)
-# las_check(ctg)
-# summary(ctg)
-
-hd<-r"(d:\DMR5G_CUZK_LAZ_OPEN_202306\las_class2\tin_2m)"
-dir.create(hd)
-setwd(hd)
-
-## tin
-dtm <- rasterize_terrain(ctg, res=2, tin())
-writeRaster(dtm,"DMR5G_2m_tin_open.img",overwrite=T)
-plot(dtm,col = gray(1:50/50))
-# plot_dtm3d(dtm, bg = "white")
-
-
-plot(dtm[[1]],col = gray(1:50/50))
-## tin - eliminate holes
-dtm <- rasterize_terrain(ctg, res=2, tin(extrapolate = knnidw(k = 20, p = 2, rmax = 100)))
-plot(dtm,col = gray(1:50/50))
-dt<-do.call(mosaic,dtm)
-
-writeRaster(dtm,r"(y:\CR\CZECH_GRIDS_1.0\00_inout_krovak_2m\DMR5G_2m_tin_open_elim_holes.img)",overwrite=T)
-plot(dtm,col = gray(1:50/50))
-# plot_dtm3d(dtm, bg = "white")
-
-=======
-  
-rslt<-r"(d:\Man\DMR5G_CUZK_LAZ_OPEN_202306_rslt)"
+rslt<-r"(d:\Man\DMR5G_CUZK_LAZ_OPEN_202306_rslt_new)"
 dir.create(rslt)
 opt_output_files(ctg)<-paste0(rslt, "/{*}_tin")
-dtm <- rasterize_terrain(ctg, res=2, tin())
-writeRaster(dtm, r"(d:\Man\dtm_2m_tin1.tif)",overwrite=T)
->>>>>>> 68d7a02dfdbed82e0775102fcaac86e4bd4051be
+dtm <- rasterize_terrain(ctg, res=2, tin(extrapolate = knnidw(k = 20, p = 2, rmax = 100)))
+writeRaster(dtm, r"(d:\Man\dtm_2m_tin_new.tif)",overwrite=T)
+st_write(ctg$geometry,r"(d:\Man\tile_catalog_new.gpkg)")
 
-getwd()
-st_write(ctg$geometry,"tile_catalog.gpkg")
+
 
 ## testing ==================================================================
 # prackovice <- clip_circle(ctg, x= -762595.74, y =-986323.41, radius = 2000)
