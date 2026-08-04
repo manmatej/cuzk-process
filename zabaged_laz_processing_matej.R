@@ -20,6 +20,7 @@ library(MBA)
 ## production ===============================================================
 
 unzips<-r"(d:\Man\DMR5G_CUZK_LAZ_OPEN_202306\)"
+unzips<- r"(q:\y_gis_data\CR\DMR5G_CUZK_LAZ_OPEN_202306\las_class2\)"
 setwd(unzips)
 get_lidr_threads()
 set_lidr_threads(0L)
@@ -29,6 +30,11 @@ plan(multisession)
 
 ctg <- readLAScatalog(unzips)
 st_crs(ctg)<-5514
+
+## how many tiles, how many points
+n_tiles <- length(ctg$filename) # 16 310
+n_points <- sum(as.numeric(ctg$Number.of.point.records), na.rm = TRUE) #  5977781887
+
 
 rslt<-r"(d:\Man\DMR5G_CUZK_LAZ_OPEN_202306_rslt_new)"
 dir.create(rslt)
